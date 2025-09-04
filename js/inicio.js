@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 document.addEventListener('DOMContentLoaded', () => {
   // Botón "Registrarse"
   document.querySelector(".btn-outline-primary").addEventListener("click", function() {
@@ -27,3 +28,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3000);
   });
 });
+=======
+// Capturar el botón de registro
+document.querySelector(".btn-outline-primary").addEventListener("click", function() {
+  // Redirigir a la página de registro
+  window.location.href = "registro.html";
+});
+
+
+// Botón Clave Única -> login.html
+document.getElementById("btnClaveUnica").addEventListener("click", function() {
+    window.location.href = "login.html";
+});
+>>>>>>> 3804213c400f9e4e1183a91f34e2efe4863c19cc
