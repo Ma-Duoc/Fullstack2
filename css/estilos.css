@@ -1,0 +1,25 @@
+/* estilos.css */
+
+/* Hero: fondo, altura y sombra de texto */
+.hero {
+  background: url('https://quimica.uc.cl/site/assets/files/6309/adobestock_225040992.859x0-is-pid1137-hidpi.jpeg') no-repeat center center/cover;
+  height: 80vh;
+  text-shadow: 1px 1px 5px black;
+}
+
+.hero {
+  background: url('https://quimica.uc.cl/site/assets/files/6309/adobestock_225040992.859x0-is-pid1137-hidpi.jpeg') no-repeat center center/cover;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centra vertical */
+  align-items: center;     /* centra horizontal */
+  color: white;            /* texto blanco */
+  text-shadow: 1px 1px 5px black; /* mantiene sombra */
+}
+
+.navbar-logo {
+  max-height: 100px; /* Aumenta el tamaño de la imagen */
+  height: auto;
+  width: auto;
+}
