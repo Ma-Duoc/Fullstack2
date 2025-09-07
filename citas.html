@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Citas - MedicTime</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+    <div class="ms-auto">
+      <a href="#" class="btn btn-outline-light">Cerrar Sesión</a>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- Sidebar -->
+      <nav class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse min-vh-100">
+        <div class="position-sticky pt-3 text-white text-center">
+
+          <!-- Logo -->
+          <div class="py-3 border-bottom">
+            <img src="https://i.imgur.com/100lvlZ.png" alt="MedicTime Logo" class="img-fluid" style="max-width: 120px;">
+          </div>
+
+          <ul class="nav flex-column mt-3">
+            <li class="nav-item">
+              <a class="nav-link text-white" href="#"><i class="bi bi-house-door me-2"></i>Inicio</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="#"><i class="bi bi-calendar-plus me-2"></i>Citas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="#"><i class="bi bi-clock-history me-2"></i>Historial</a>
+            </li>
+          </ul>
+
+        </div>
+      </nav>
+
+      <!-- Contenido principal -->
+      <main class="col-md-9 col-lg-10 p-4">
+        <h3 class="fw-bold mb-4">Gestión de Citas</h3>
+
+        <!-- Lista de citas -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-primary text-white">
+            <i class="bi bi-list-check"></i> Mis Citas
+          </div>
+          <div class="card-body">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Especialista</th>
+                  <th>Dirección</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="citas-lista">
+                <!-- Aquí se cargarán las citas -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Formulario nueva cita -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <i class="bi bi-calendar-plus"></i> Agendar Nueva Cita
+          </div>
+          <div class="card-body">
+            <form id="form-cita">
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label class="form-label">Fecha</label>
+                  <input type="date" class="form-control" id="fecha" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Hora</label>
+                  <input type="time" class="form-control" id="hora" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Especialista</label>
+                  <select class="form-select" id="especialista" required>
+                    <option value="">Seleccione...</option>
+                    <option>Médico General</option>
+                    <option>Cardiólogo</option>
+                    <option>Dermatólogo</option>
+                    <option>Pediatra</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Dirección</label>
+                <select class="form-select" id="direccion" required>
+                  <option value="">Seleccione...</option>
+                  <option>Centro Médico Principal - Av. Siempre Viva 123</option>
+                  <option>Sucursal Norte - Calle Los Álamos 456</option>
+                  <option>Sucursal Sur - Av. Las Flores 789</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-primary">Agregar Cita</button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/citas.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

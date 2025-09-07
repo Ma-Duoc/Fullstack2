@@ -1,43 +1,37 @@
-<<<<<<< HEAD
-document.addEventListener('DOMContentLoaded', () => {
-  // Botón "Registrarse"
-  document.querySelector(".btn-outline-primary").addEventListener("click", function() {
-    window.location.href = "registro.html";
-  });
+// inicio.js
+// JS mínimo para la página de inicio
 
-  // Botón "Clave Única"
-  document.getElementById("btnClaveUnica").addEventListener("click", function() {
-    console.log("Botón Clave Única presionado");
-    window.location.href = "login.html";
-  });
+// 🔹 Ejemplo: mostrar un mensaje en consola al cargar la página
+console.log("inicio.js cargado correctamente");
 
-  // Formulario contacto
-  const contactForm = document.getElementById('contactForm');
-  const successMessage = document.getElementById('successMessage');
+// 🔹 Aquí puedes agregar funcionalidades para botones, animaciones o interacciones
+// Por ejemplo, si quieres manejar algún click en botones específicos:
 
-  contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  // Botón de Clave Única (solo ejemplo)
+  const claveUnicaBtn = document.querySelector(".boton-claveunica");
+  if (claveUnicaBtn) {
+    claveUnicaBtn.addEventListener("click", () => {
+      console.log("Se hizo clic en Clave Única");
+      // Si deseas, puedes redirigir a login.html
+      // window.location.href = "login.html";
+    });
+  }
 
-    contactForm.reset();
-
-    successMessage.textContent = 'Contacto realizado con éxito';
-    successMessage.style.display = 'block';
-
-    setTimeout(() => {
-      successMessage.style.display = 'none';
-    }, 3000);
-  });
+  // Modal Contacto: opcional si quieres manejar envío con JS
+  const contactForm = document.getElementById("contactForm");
+  if (contactForm) {
+    contactForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      // Mostrar mensaje de éxito sin guardar en sessionStorage
+      const successMsg = document.getElementById("successMessage");
+      if (successMsg) {
+        successMsg.textContent = "¡Mensaje enviado con éxito!";
+        successMsg.style.display = "block";
+      }
+      // Limpiar formulario
+      contactForm.reset();
+    });
+  }
 });
-=======
-// Capturar el botón de registro
-document.querySelector(".btn-outline-primary").addEventListener("click", function() {
-  // Redirigir a la página de registro
-  window.location.href = "registro.html";
-});
 
-
-// Botón Clave Única -> login.html
-document.getElementById("btnClaveUnica").addEventListener("click", function() {
-    window.location.href = "login.html";
-});
->>>>>>> 3804213c400f9e4e1183a91f34e2efe4863c19cc

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial - MedicTime</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+<body class="bg-light">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+    <div class="ms-auto">
+      <a href="#" class="btn btn-outline-light">Cerrar Sesión</a>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- Sidebar -->
+      <nav class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse min-vh-100">
+        <div class="position-sticky pt-3 text-white text-center">
+
+          <!-- Logo en lugar de título -->
+          <div class="py-3 border-bottom">
+            <img src="https://i.imgur.com/100lvlZ.png" alt="MedicTime Logo" class="img-fluid" style="max-width: 120px;">
+          </div>
+
+          <ul class="nav flex-column mt-3">
+            <li class="nav-item">
+              <a class="nav-link text-white" href="#"><i class="bi bi-house-door me-2"></i>Inicio</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="#"><i class="bi bi-calendar-plus me-2"></i>Citas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white" href="#"><i class="bi bi-clock-history me-2"></i>Historial</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- Contenido principal -->
+      <main class="col-md-9 col-lg-10 p-4">
+        <div class="card shadow-lg border-0">
+          <div class="card-body bg-primary text-white rounded">
+            <h4 class="fw-bold mb-3">Historial Médico</h4>
+
+            <!-- Filtros -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label text-white fw-bold">Filtrar por fecha</label>
+                <input type="date" class="form-control" id="filtro-fecha">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-white fw-bold">Filtrar por tipo</label>
+                <select class="form-select" id="filtro-tipo">
+                  <option value="">Todos</option>
+                  <option value="informe">Informes</option>
+                  <option value="receta">Recetas</option>
+                  <option value="examen">Exámenes</option>
+                </select>
+              </div>
+              <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-light fw-bold w-100" id="btn-filtrar">
+                  <i class="bi bi-funnel"></i> Aplicar filtro
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de historial -->
+            <div class="table-responsive">
+              <table class="table table-striped table-hover bg-white text-dark rounded shadow-sm">
+                <thead class="table-primary">
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Especialista</th>
+                    <th>Diagnóstico</th>
+                    <th>Documento</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>2025-08-15</td>
+                    <td>Dra. Fernanda Muñoz (Cardióloga)</td>
+                    <td>Chequeo general, sin hallazgos graves.</td>
+                    <td>Informes</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Descargar PDF
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>2025-07-30</td>
+                    <td>Dr. Luis Pérez (Dermatólogo)</td>
+                    <td>Receta para tratamiento de piel.</td>
+                    <td>Recetas</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Descargar PDF
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>2025-06-20</td>
+                    <td>Dra. Carolina Soto (Laboratorio)</td>
+                    <td>Examen de sangre: todo normal.</td>
+                    <td>Exámenes</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Descargar PDF
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/historial.js"></script>
+
+</body>
+</html>
