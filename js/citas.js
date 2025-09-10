@@ -1,4 +1,4 @@
-// 🔹 Cargar citas desde sessionStorage al iniciar
+// Cargar citas desde sessionStorage al iniciar
 window.onload = function () {
     const citasGuardadas = JSON.parse(sessionStorage.getItem("citas")) || [];
     citasGuardadas.forEach(cita => agregarFilaCita(cita));
@@ -10,7 +10,6 @@ window.onload = function () {
         window.location.href = "inicio.html";
     });
 
-    // Sidebar navegación
     document.querySelectorAll(".nav-link").forEach(link => {
         link.addEventListener("click", function (e) {
             e.preventDefault();
@@ -21,7 +20,7 @@ window.onload = function () {
     });
 };
 
-// 🔹 Formulario de nueva cita
+// Formulario de nueva cita
 const formCita = document.getElementById("form-cita");
 const citasLista = document.getElementById("citas-lista");
 
@@ -50,7 +49,7 @@ formCita.addEventListener("submit", function (e) {
     alert("✅ Nueva cita registrada");
 });
 
-// 🔹 Función para agregar fila a la tabla
+
 function agregarFilaCita(cita) {
     const fila = document.createElement("tr");
     fila.innerHTML = `
@@ -74,7 +73,7 @@ function agregarFilaCita(cita) {
     citasLista.appendChild(fila);
 }
 
-// 🔹 Eliminar cita del sessionStorage
+//  Eliminar cita del sessionStorage
 function eliminarCitaStorage(cita) {
     let citasGuardadas = JSON.parse(sessionStorage.getItem("citas")) || [];
     citasGuardadas = citasGuardadas.filter(c => !(c.fecha === cita.fecha && c.hora === cita.hora && c.especialista === cita.especialista && c.direccion === cita.direccion));

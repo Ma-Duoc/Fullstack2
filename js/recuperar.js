@@ -2,7 +2,6 @@ const form = document.getElementById("resetForm");
 const email = document.getElementById("email");
 const notification = document.getElementById("notification");
 
-// Funciones de validación visual
 function setInvalid(input, msg) {
   input.classList.add("is-invalid");
   const feedback = input.parentElement.querySelector(".invalid-feedback");
@@ -14,7 +13,6 @@ function setValid(input) {
   input.classList.add("is-valid");
 }
 
-// Validación simple de email
 function isEmail(value) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(value);
@@ -30,7 +28,7 @@ function validarEmail() {
   return true;
 }
 
-// Evento principal del formulario
+
 form.addEventListener("submit", function(event) {
   event.preventDefault();
   event.stopPropagation();
@@ -38,7 +36,7 @@ form.addEventListener("submit", function(event) {
   // Validar email
   if (!validarEmail()) return;
 
-  // Mostrar notificación como card
+ 
   notification.style.display = "block";
 
   // Redirigir tras 2 segundos
@@ -46,7 +44,7 @@ form.addEventListener("submit", function(event) {
     window.location.href = "login.html";
   }, 2000);
 
-  // Limpiar formulario y clases
+
   form.reset();
   form.querySelectorAll(".is-valid").forEach(el => el.classList.remove("is-valid"));
 });

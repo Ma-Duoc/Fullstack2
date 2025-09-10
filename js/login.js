@@ -1,10 +1,10 @@
-// login.js
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
   const rutInput = document.getElementById("rut");
   const passwordInput = document.getElementById("password");
 
-  // Funciones reutilizadas del registro.js
+
   function setInvalid(input, msg) {
     input.classList.add("is-invalid");
     const feedback = input.parentElement.querySelector(".invalid-feedback");
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return passRegex.test(value);
   }
 
-  // Validadores específicos
+
   function validarCampoRut() {
     const valor = rutInput.value.trim();
     if (!validarRut(valor)) {
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  // Evento de submit
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
@@ -69,13 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
     valido = validarCampoRut() && valido;
     valido = validarPassword() && valido;
 
-    if (!valido) return; // Detener si hay errores
+    if (!valido) return; 
 
     // Guardar login en sessionStorage
     sessionStorage.setItem("rut", normalizarRut(rutInput.value.trim()));
     sessionStorage.setItem("password", passwordInput.value);
 
-    // Redirigir al dashboard
+
     window.location.href = "dashboard.html";
   });
 });

@@ -7,7 +7,7 @@ const rut   = document.getElementById("rut");
 const password = document.getElementById("password");
 const confirmPassword = document.getElementById("confirmPassword");
 
-// Funciones de validación visual
+
 function setInvalid(input, msg) {
   input.classList.add("is-invalid");
   const feedback = input.parentElement.querySelector(".invalid-feedback");
@@ -19,7 +19,7 @@ function setValid(input) {
   input.classList.add("is-valid");
 }
 
-// Validaciones específicas
+
 function isEmail(value) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(value);
@@ -50,7 +50,7 @@ function validarRut(rutCompleto) {
   return dv === dvEsperado;
 }
 
-// Validaciones de cada campo
+
 function validarNombre() {
   if (nombre.value.trim() === "") {
     setInvalid(nombre, "El nombre es obligatorio.");
@@ -101,7 +101,7 @@ function validarConfirmPassword() {
   return true;
 }
 
-// Evento principal del formulario
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   event.stopPropagation();
@@ -113,9 +113,9 @@ form.addEventListener("submit", (event) => {
   valido = validarPassword()        && valido;
   valido = validarConfirmPassword() && valido;
 
-  if (!valido) return; // Si hay errores, se detiene aquí
+  if (!valido) return; 
 
-  // Guardar usuario en sessionStorage
+ 
   const usuario = {
     nombre: nombre.value.trim(),
     email: email.value.trim(),
@@ -125,7 +125,7 @@ form.addEventListener("submit", (event) => {
 
   sessionStorage.setItem("usuario", JSON.stringify(usuario));
 
-  // Notificación de éxito y redirección
+
   alert("✅ Registro exitoso. Serás redirigido al inicio.");
 
   // Redirigir tras 1.5 segundos
@@ -133,7 +133,7 @@ form.addEventListener("submit", (event) => {
     window.location.href = "inicio.html";
   }, 1500);
 
-  // Limpiar el formulario
+
   form.reset();
   form.querySelectorAll(".is-valid").forEach(el => el.classList.remove("is-valid"));
 });
