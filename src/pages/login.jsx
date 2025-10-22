@@ -11,35 +11,23 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errorRut, setErrorRut] = useState("");
   const [errorPassword, setErrorPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Normaliza el RUT
   const normalizarRut = (r) => r.replace(/\./g, "").toUpperCase();
 
-  // Valida formato y dígito verificador del RUT
+  // Valida formato del RUT (7 u 8 dígitos + guion + dígito verificador)
   const validarRut = (rutCompleto) => {
     rutCompleto = normalizarRut(rutCompleto);
-    if (!/^[0-9]+-[0-9K]$/.test(rutCompleto)) return false;
-
-    const [numero, dv] = rutCompleto.split("-");
-    if (numero.length < 7 || numero.length > 9) return false;
-
-    let suma = 0,
-      mul = 2;
-    for (let i = numero.length - 1; i >= 0; i--) {
-      suma += parseInt(numero[i], 10) * mul;
-      mul = mul < 7 ? mul + 1 : 2;
-    }
-    const resto = 11 - (suma % 11);
-    const dvEsperado = resto === 11 ? "0" : resto === 10 ? "K" : String(resto);
-    return dv === dvEsperado;
+    return /^[0-9]{7,8}-[0-9K]$/.test(rutCompleto);
   };
 
-  // Valida la contraseña (mínimo 8, mayúscula, minúscula y número)
+  // Valida contraseña fuerte (mínimo 8 caracteres, mayúscula, minúscula y número)
   const isStrongPassword = (value) =>
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
 
   // Manejo del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     let valid = true;
 
@@ -61,11 +49,33 @@ export default function Login() {
       setErrorPassword("");
     }
 
-    // Si todo está correcto
-    if (valid) {
-      sessionStorage.setItem("rut", normalizarRut(rut.trim()));
-      sessionStorage.setItem("password", password);
-      navigate("/dashboard"); // edirige usando React Router
+    if (!valid) return;
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "https://demo0545743.mockable.io/api/v2/pacientes/todos"
+      );
+      const data = await response.json();
+
+      // Busca el RUT en la data
+      const existeRut = data.some(
+        (paciente) => normalizarRut(paciente.rut) === normalizarRut(rut.trim())
+      );
+
+      if (existeRut) {
+        sessionStorage.setItem("rut", normalizarRut(rut.trim()));
+        sessionStorage.setItem("password", password);
+        navigate("/dashboard");
+      } else {
+        setErrorRut("RUT no encontrado en la base de datos.");
+      }
+    } catch (error) {
+      console.error("Error al conectar con Mockable:", error);
+      setErrorRut("Ocurrió un error al validar el RUT. Intente nuevamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,25 +97,18 @@ export default function Login() {
         </nav>
       </header>
 
-      {/*  Login con fondo */}
+      {/* Login con fondo */}
       <section className="login-section d-flex justify-content-center align-items-center">
-        <div
-          className="card p-4 shadow-sm"
-          style={{ maxWidth: "400px", width: "100%" }}
-        >
+        <div className="card p-4 shadow-sm" style={{ maxWidth: "400px", width: "100%" }}>
           <h3 className="text-center mb-4">Iniciar Sesión</h3>
           <form onSubmit={handleSubmit}>
             {/* RUT */}
             <div className="mb-3">
-              <label htmlFor="rut" className="form-label">
-                Rut
-              </label>
+              <label htmlFor="rut" className="form-label">Rut</label>
               <input
                 type="text"
                 id="rut"
-                className={`form-control ${
-                  errorRut ? "is-invalid" : rut ? "is-valid" : ""
-                }`}
+                className={`form-control ${errorRut ? "is-invalid" : rut ? "is-valid" : ""}`}
                 placeholder="Ej: 12345678-9"
                 value={rut}
                 onChange={(e) => setRut(e.target.value)}
@@ -114,39 +117,23 @@ export default function Login() {
               {errorRut && <div className="invalid-feedback">{errorRut}</div>}
             </div>
 
-            {/*  Contraseña */}
-            <div className="mb-1 text-end">
-              <button
-                type="button"
-                className="text-primary text-decoration-none btn btn-link p-0"
-                onClick={() => navigate("/recuperar")}
-              >
-                ¿Has olvidado tu contraseña?
-              </button>
-            </div>
-
+            {/* Contraseña */}
             <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Contraseña
-              </label>
+              <label htmlFor="password" className="form-label">Contraseña</label>
               <input
                 type="password"
                 id="password"
-                className={`form-control ${
-                  errorPassword ? "is-invalid" : password ? "is-valid" : ""
-                }`}
+                className={`form-control ${errorPassword ? "is-invalid" : password ? "is-valid" : ""}`}
                 placeholder="Ingrese su contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              {errorPassword && (
-                <div className="invalid-feedback">{errorPassword}</div>
-              )}
+              {errorPassword && <div className="invalid-feedback">{errorPassword}</div>}
             </div>
 
-            <button type="submit" className="btn btn-primary w-100">
-              Ingresar
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+              {loading ? "Validando..." : "Ingresar"}
             </button>
 
             <div className="mt-3 text-center">
@@ -162,14 +149,10 @@ export default function Login() {
         </div>
       </section>
 
-      {/*  Footer */}
+      {/* Footer */}
       <footer className="bg-dark text-white text-center py-3 mt-auto">
-        <p className="mb-0">
-          &copy; 2025 MEDICTIME | Mejorando la salud de Chile desde 1972
-        </p>
+        <p className="mb-0">&copy; 2025 MEDICTIME | Mejorando la salud de Chile desde 1972</p>
       </footer>
     </div>
   );
 }
-
-

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Registro = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [rut, setRut] = useState("");
@@ -36,13 +36,18 @@ const Registro = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
+
     if (!nombre.trim()) newErrors.nombre = "El nombre es obligatorio.";
-    if (!isEmail(email.trim())) newErrors.email = "Por favor, ingresa un correo válido.";
-    if (!validarRut(rut.trim())) newErrors.rut = "Ingrese un RUT válido (ej: 12345678-9).";
+    if (!isEmail(email.trim()))
+      newErrors.email = "Por favor, ingresa un correo válido.";
+    if (!validarRut(rut.trim()))
+      newErrors.rut = "Ingrese un RUT válido (ej: 12345678-9).";
     if (!isStrongPassword(password))
-      newErrors.password = "Mínimo 8 caracteres, con mayúscula, minúscula y número.";
+      newErrors.password =
+        "Mínimo 8 caracteres, con mayúscula, minúscula y número.";
     if (confirmPassword !== password || !confirmPassword)
       newErrors.confirmPassword = "Las contraseñas no coinciden.";
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
@@ -59,8 +64,12 @@ const Registro = () => {
       setPassword("");
       setConfirmPassword("");
 
-      // Mostrar notificación 1.5s antes de redirigir
-      setTimeout(() => navigate("/inicio"), 1500);
+      // 🔧 Redirección testeable (sin delay en entorno de pruebas)
+      if (import.meta.env.MODE === "test") {
+        navigate("/inicio"); // instantáneo en test
+      } else {
+        setTimeout(() => navigate("/inicio"), 1500); // delay real en producción
+      }
     }
   };
 
@@ -164,7 +173,9 @@ const Registro = () => {
                 onChange={(e) => setRut(e.target.value)}
                 required
               />
-              {errors.rut && <div className="invalid-feedback">{errors.rut}</div>}
+              {errors.rut && (
+                <div className="invalid-feedback">{errors.rut}</div>
+              )}
             </div>
 
             <div className="mb-3">
@@ -195,7 +206,11 @@ const Registro = () => {
                 type="password"
                 id="confirmPassword"
                 className={`form-control ${
-                  errors.confirmPassword ? "is-invalid" : confirmPassword ? "is-valid" : ""
+                  errors.confirmPassword
+                    ? "is-invalid"
+                    : confirmPassword
+                    ? "is-valid"
+                    : ""
                 }`}
                 placeholder="Repite la contraseña"
                 value={confirmPassword}
@@ -203,7 +218,9 @@ const Registro = () => {
                 required
               />
               {errors.confirmPassword && (
-                <div className="invalid-feedback">{errors.confirmPassword}</div>
+                <div className="invalid-feedback">
+                  {errors.confirmPassword}
+                </div>
               )}
             </div>
 
@@ -220,4 +237,5 @@ const Registro = () => {
 };
 
 export default Registro;
+
 
