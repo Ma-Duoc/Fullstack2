@@ -22,7 +22,7 @@ export default function PreguntasFrecuentes() {
   return (
     <>
       <main style={{ minHeight: "100vh", paddingTop: "40px" }}>
-        {/* Centrar todo el contenido horizontalmente */}
+
         <div className="d-flex justify-content-center">
           <section className="text-center my-5" style={{ width: "90%", maxWidth: "900px" }} id="faq-section">
             <img src="https://i.imgur.com/100lvlZ.png" alt="Logo MEDICTIME" style={{ height: "60px" }} />

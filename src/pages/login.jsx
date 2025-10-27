@@ -11,39 +11,24 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errorRut, setErrorRut] = useState("");
   const [errorPassword, setErrorPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Normaliza el RUT
+
   const normalizarRut = (r) => r.replace(/\./g, "").toUpperCase();
 
-  // Valida formato y dígito verificador del RUT
   const validarRut = (rutCompleto) => {
     rutCompleto = normalizarRut(rutCompleto);
-    if (!/^[0-9]+-[0-9K]$/.test(rutCompleto)) return false;
-
-    const [numero, dv] = rutCompleto.split("-");
-    if (numero.length < 7 || numero.length > 9) return false;
-
-    let suma = 0,
-      mul = 2;
-    for (let i = numero.length - 1; i >= 0; i--) {
-      suma += parseInt(numero[i], 10) * mul;
-      mul = mul < 7 ? mul + 1 : 2;
-    }
-    const resto = 11 - (suma % 11);
-    const dvEsperado = resto === 11 ? "0" : resto === 10 ? "K" : String(resto);
-    return dv === dvEsperado;
+    return /^[0-9]{7,8}-[0-9K]$/.test(rutCompleto);
   };
 
-  // Valida la contraseña (mínimo 8, mayúscula, minúscula y número)
+
   const isStrongPassword = (value) =>
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
 
-  // Manejo del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     let valid = true;
 
-    // Validación del RUT
     if (!validarRut(rut.trim())) {
       setErrorRut("Ingrese un RUT válido (ej: 12345678-9).");
       valid = false;
@@ -51,7 +36,7 @@ export default function Login() {
       setErrorRut("");
     }
 
-    // Validación de contraseña
+
     if (!isStrongPassword(password)) {
       setErrorPassword(
         "Contraseña inválida. Debe tener mínimo 8 caracteres, mayúscula, minúscula y número."
@@ -61,17 +46,44 @@ export default function Login() {
       setErrorPassword("");
     }
 
-    // Si todo está correcto
-    if (valid) {
-      sessionStorage.setItem("rut", normalizarRut(rut.trim()));
-      sessionStorage.setItem("password", password);
-      navigate("/dashboard"); // edirige usando React Router
+    if (!valid) return;
+
+    setLoading(true);
+
+    try {
+
+      const response = await fetch(
+        "https://demo0545743.mockable.io/api/v2/pacientes/todos"
+      );
+      const data = await response.json();
+
+ 
+      const paciente = data.find(
+        (p) => normalizarRut(p.rut) === normalizarRut(rut.trim())
+      );
+
+      if (paciente) {
+        sessionStorage.setItem("rut", paciente.rut);
+        sessionStorage.setItem("nombre", paciente.nombre);
+        sessionStorage.setItem("email", paciente.correo);
+        sessionStorage.setItem("telefono", paciente.telefono);
+        sessionStorage.setItem("password", password);
+
+        navigate("/dashboard");
+      } else {
+        setErrorRut("RUT no encontrado en la base de datos.");
+      }
+    } catch (error) {
+      console.error("Error al conectar con Mockable:", error);
+      setErrorRut("Ocurrió un error al validar el RUT. Intente nuevamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      {/* Header */}
+
       <header className="bg-white shadow-sm">
         <nav className="navbar navbar-expand-lg navbar-light container">
           <button
@@ -87,7 +99,7 @@ export default function Login() {
         </nav>
       </header>
 
-      {/*  Login con fondo */}
+
       <section className="login-section d-flex justify-content-center align-items-center">
         <div
           className="card p-4 shadow-sm"
@@ -95,7 +107,7 @@ export default function Login() {
         >
           <h3 className="text-center mb-4">Iniciar Sesión</h3>
           <form onSubmit={handleSubmit}>
-            {/* RUT */}
+
             <div className="mb-3">
               <label htmlFor="rut" className="form-label">
                 Rut
@@ -114,16 +126,6 @@ export default function Login() {
               {errorRut && <div className="invalid-feedback">{errorRut}</div>}
             </div>
 
-            {/*  Contraseña */}
-            <div className="mb-1 text-end">
-              <button
-                type="button"
-                className="text-primary text-decoration-none btn btn-link p-0"
-                onClick={() => navigate("/recuperar")}
-              >
-                ¿Has olvidado tu contraseña?
-              </button>
-            </div>
 
             <div className="mb-3">
               <label htmlFor="password" className="form-label">
@@ -145,9 +147,24 @@ export default function Login() {
               )}
             </div>
 
-            <button type="submit" className="btn btn-primary w-100">
-              Ingresar
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              disabled={loading}
+            >
+              {loading ? "Validando..." : "Ingresar"}
             </button>
+
+            <div className="mt-2 text-center">
+            <button
+              type="button"
+              className="btn btn-link text-decoration-none text-primary"
+              onClick={() => navigate("/recuperar")}
+            >
+              ¿Has olvidado la contraseña?
+            </button>
+          </div>
+
 
             <div className="mt-3 text-center">
               <button
@@ -162,7 +179,7 @@ export default function Login() {
         </div>
       </section>
 
-      {/*  Footer */}
+
       <footer className="bg-dark text-white text-center py-3 mt-auto">
         <p className="mb-0">
           &copy; 2025 MEDICTIME | Mejorando la salud de Chile desde 1972
@@ -171,5 +188,4 @@ export default function Login() {
     </div>
   );
 }
-
 
