@@ -8,22 +8,87 @@ export default function Citas() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [citas, setCitas] = useState(() => JSON.parse(sessionStorage.getItem("citas")) || []);
-  const [nuevaCita, setNuevaCita] = useState({ fecha: "", hora: "", especialista: "", direccion: "", estado: "Pendiente" });
-
-  useEffect(() => { sessionStorage.setItem("citas", JSON.stringify(citas)); }, [citas]);
+  const [citas, setCitas] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [nuevaCita, setNuevaCita] = useState({ 
+    fecha: "", 
+    hora: "", 
+    medicoId: "", 
+    salaId: "", 
+    motivo: "" 
+  });
 
   const handleChange = (e) => setNuevaCita({ ...nuevaCita, [e.target.id]: e.target.value });
 
-  const agregarCita = (e) => {
+  const agregarCita = async (e) => {
     e.preventDefault();
-    if (Object.values(nuevaCita).some(v => !v)) return alert("⚠️ Por favor, completa todos los campos.");
-    setCitas([...citas, nuevaCita]);
-    setNuevaCita({ fecha: "", hora: "", especialista: "", direccion: "", estado: "Pendiente" });
-    alert("Nueva cita registrada");
+    
+    if (Object.values(nuevaCita).some(v => !v)) {
+      return alert("⚠️ Por favor, completa todos los campos.");
+    }
+
+    const rut = sessionStorage.getItem("rut");
+    const nombre = sessionStorage.getItem("nombre");
+    const apellido = sessionStorage.getItem("apellido");
+
+    if (!rut || !nombre) {
+      return alert("⚠️ No hay sesión de paciente activa.");
+    }
+
+    setLoading(true);
+    
+    try {
+      // Combinar fecha y hora en formato LocalDateTime
+      const fechaHora = `${nuevaCita.fecha}T${nuevaCita.hora}:00`;
+      
+      // Validar que la fecha sea futura
+      const fechaSeleccionada = new Date(fechaHora);
+      const ahora = new Date();
+      if (fechaSeleccionada <= ahora) {
+        setLoading(false);
+        return alert("⚠️ La fecha y hora deben ser futuras.");
+      }
+      
+      // Obtener datos del médico seleccionado
+      const medicoSeleccionado = medicos.find(m => m.id === parseInt(nuevaCita.medicoId));
+      const salaSeleccionada = salas.find(s => s.id === parseInt(nuevaCita.salaId));
+
+      const citaRequest = {
+        userId: rut,
+        userNombre: `${nombre} ${apellido || ""}`,
+        medicoId: nuevaCita.medicoId,
+        medicoNombre: medicoSeleccionado ? `${medicoSeleccionado.nombre} ${medicoSeleccionado.apellido}` : "",
+        especialidad: medicoSeleccionado ? medicoSeleccionado.especialidad : "",
+        salaId: parseInt(nuevaCita.salaId),
+        salaNombre: salaSeleccionada ? salaSeleccionada.nombre : "",
+        fechaHora: fechaHora,
+        motivo: nuevaCita.motivo
+      };
+
+      const response = await fetch("http://localhost:8089/api/citas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(citaRequest)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || error.error || "Error al agendar cita");
+      }
+
+      const citaCreada = await response.json();
+      setCitas([...citas, citaCreada]);
+      setNuevaCita({ fecha: "", hora: "", medicoId: "", salaId: "", motivo: "" });
+      alert("✅ Cita agendada exitosamente");
+      
+    } catch (error) {
+      console.error("Error al agendar cita:", error);
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const eliminarCita = (index) => setCitas(citas.filter((_, i) => i !== index));
 
   const cerrarSesion = () => { sessionStorage.clear(); navigate("/inicio"); };
 
@@ -33,12 +98,31 @@ export default function Citas() {
     { path: "/historial", icon: "clock-history", label: "Historial" },
   ];
 
-  const especialistas = ["Médico General","Cardiólogo","Dermatólogo","Pediatra"];
-  const direcciones = [
-    "Centro Médico Principal - Av. Siempre Viva 123",
-    "Sucursal Norte - Calle Los Álamos 456",
-    "Sucursal Sur - Av. Las Flores 789"
-  ];
+  const [medicos, setMedicos] = useState([]);
+  const [salas, setSalas] = useState([]);
+
+  useEffect(() => {
+    // Cargar médicos
+    fetch("http://localhost:8089/api/medicos")
+      .then(res => res.json())
+      .then(data => setMedicos(data))
+      .catch(err => console.error("Error al cargar médicos:", err));
+
+    // Cargar salas
+    fetch("http://localhost:8089/api/salas")
+      .then(res => res.json())
+      .then(data => setSalas(data))
+      .catch(err => console.error("Error al cargar salas:", err));
+
+    // Cargar citas del paciente
+    const rut = sessionStorage.getItem("rut");
+    if (rut) {
+      fetch(`http://localhost:8089/api/citas/usuario/${rut}`)
+        .then(res => res.json())
+        .then(data => setCitas(data))
+        .catch(err => console.error("Error al cargar citas:", err));
+    }
+  }, []);
 
   return (
     <div className="bg-light min-vh-100">
@@ -78,7 +162,7 @@ export default function Citas() {
                 <table className="table table-hover mb-0">
                   <thead>
                     <tr>
-                      <th>Fecha</th><th>Hora</th><th>Especialista</th><th>Dirección</th><th>Estado</th><th>Acciones</th>
+                      <th>Fecha</th><th>Hora</th><th>Médico</th><th>Especialidad</th><th>Sala</th><th>Estado</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -86,14 +170,13 @@ export default function Citas() {
                       <tr><td colSpan="6" className="text-center text-muted py-3">No hay citas registradas.</td></tr>
                     ) : (
                       citas.map((cita, i) => (
-                        <tr key={i}>
-                          <td>{cita.fecha}</td><td>{cita.hora}</td><td>{cita.especialista}</td><td>{cita.direccion}</td>
-                          <td><span className="badge bg-success">{cita.estado}</span></td>
-                          <td>
-                            <button className="btn btn-danger btn-sm" onClick={() => eliminarCita(i)}>
-                              <i className="bi bi-trash"></i> Eliminar
-                            </button>
-                          </td>
+                        <tr key={cita.id || i}>
+                          <td>{new Date(cita.fechaHora).toLocaleDateString()}</td>
+                          <td>{new Date(cita.fechaHora).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                          <td>{cita.medicoNombre}</td>
+                          <td>{cita.especialidad}</td>
+                          <td>{cita.salaNombre}</td>
+                          <td><span className="badge bg-success">{cita.estado || "PROGRAMADA"}</span></td>
                         </tr>
                       ))
                     )}
@@ -113,23 +196,44 @@ export default function Citas() {
                     </div>
                   ))}
 
-                  <div className="col-md-4">
-                    <label htmlFor="especialista" className="form-label">Especialista</label>
-                    <select id="especialista" className="form-select" value={nuevaCita.especialista} onChange={handleChange} required>
+                  <div className="col-md-6">
+                    <label htmlFor="medicoId" className="form-label">Médico</label>
+                    <select id="medicoId" className="form-select" value={nuevaCita.medicoId} onChange={handleChange} required>
                       <option value="">Seleccione...</option>
-                      {especialistas.map(e => <option key={e}>{e}</option>)}
+                      {medicos.map(m => (
+                        <option key={m.id} value={m.id}>{m.nombre} {m.apellido} - {m.especialidad}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label htmlFor="salaId" className="form-label">Sala</label>
+                    <select id="salaId" className="form-select" value={nuevaCita.salaId} onChange={handleChange} required>
+                      <option value="">Seleccione...</option>
+                      {salas.map(s => (
+                        <option key={s.id} value={s.id}>{s.nombre} - {s.tipo}</option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="col-12">
-                    <label htmlFor="direccion" className="form-label">Dirección</label>
-                    <select id="direccion" className="form-select" value={nuevaCita.direccion} onChange={handleChange} required>
-                      <option value="">Seleccione...</option>
-                      {direcciones.map(d => <option key={d}>{d}</option>)}
-                    </select>
+                    <label htmlFor="motivo" className="form-label">Motivo de la cita</label>
+                    <textarea 
+                      id="motivo" 
+                      className="form-control" 
+                      value={nuevaCita.motivo} 
+                      onChange={handleChange} 
+                      required
+                      rows="3"
+                      placeholder="Describe el motivo de tu consulta..."
+                    />
                   </div>
 
-                  <div className="col-12"><button type="submit" className="btn btn-primary">Agregar Cita</button></div>
+                  <div className="col-12">
+                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                      {loading ? "Agendando..." : "Agendar Cita"}
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>

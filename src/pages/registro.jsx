@@ -3,154 +3,273 @@ import { useNavigate } from "react-router-dom";
 
 const Registro = () => {
   const navigate = useNavigate();
+
   const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [email, setEmail] = useState("");
   const [rut, setRut] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [direccion, setDireccion] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
   const isStrongPassword = (value) =>
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
+
   const normalizarRut = (r) => r.replace(/\./g, "").toUpperCase();
+
   const validarRut = (rut) => {
     rut = normalizarRut(rut);
+
     if (!/^[0-9]+-[0-9K]$/.test(rut)) return false;
+
     const [num, dv] = rut.split("-");
+
     if (num.length < 7 || num.length > 9) return false;
 
-    let suma = 0,
-      mul = 2;
+    let suma = 0;
+    let mul = 2;
+
     for (let i = num.length - 1; i >= 0; i--) {
       suma += parseInt(num[i], 10) * mul;
       mul = mul < 7 ? mul + 1 : 2;
     }
+
     const resto = 11 - (suma % 11);
-    const dvEsperado = resto === 11 ? "0" : resto === 10 ? "K" : resto.toString();
+    const dvEsperado =
+      resto === 11 ? "0" : resto === 10 ? "K" : resto.toString();
+
     return dv === dvEsperado;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const newErrors = {};
 
     if (!nombre.trim()) newErrors.nombre = "El nombre es obligatorio.";
+    if (!apellido.trim()) newErrors.apellido = "El apellido es obligatorio.";
+    if (!fechaNacimiento)
+      newErrors.fechaNacimiento = "La fecha de nacimiento es obligatoria.";
+
     if (!isEmail(email.trim()))
       newErrors.email = "Por favor, ingresa un correo válido.";
+
     if (!validarRut(rut.trim()))
       newErrors.rut = "Ingrese un RUT válido (ej: 12345678-9).";
+
     if (!isStrongPassword(password))
       newErrors.password =
         "Mínimo 8 caracteres, con mayúscula, minúscula y número.";
+
     if (confirmPassword !== password || !confirmPassword)
       newErrors.confirmPassword = "Las contraseñas no coinciden.";
 
     setErrors(newErrors);
+    setErrorMessage("");
+    setSuccessMessage("");
 
     if (Object.keys(newErrors).length === 0) {
-      sessionStorage.setItem(
-        "usuario",
-        JSON.stringify({ nombre, email, rut: normalizarRut(rut), password })
+      try {
+              const response = await fetch(
+        "http://localhost:8089/api/pacientes/usuarios/registro",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rut: normalizarRut(rut),
+            nombre,
+            apellido,
+            fechaNacimiento,
+            email,
+            telefono,
+            direccion,
+            password,
+          }),
+        }
       );
-      setSuccess(true);
 
-      setNombre("");
-      setEmail("");
-      setRut("");
-      setPassword("");
-      setConfirmPassword("");
+      console.log("status:", response.status);
 
-      if (import.meta.env.MODE === "test") {
-        navigate("/inicio"); 
-      } else {
-        setTimeout(() => navigate("/inicio"), 1500); 
+      const result = await response.json();
+      console.log("response:", result);
+
+        if (response.ok) {
+          setSuccessMessage("Registro exitoso");
+
+          setNombre("");
+          setApellido("");
+          setFechaNacimiento("");
+          setEmail("");
+          setRut("");
+          setTelefono("");
+          setDireccion("");
+          setPassword("");
+          setConfirmPassword("");
+
+          setTimeout(() => navigate("/inicio"), 1500);
+        } else {
+          setErrorMessage(result);
+        }
+      } catch (error) {
+        setErrorMessage("Error al conectar con el backend.");
       }
     }
   };
 
   return (
     <div className="registro-section">
-      {success && (
-        <div className="registro-success">✅ Registro exitoso</div>
+      {successMessage && (
+        <div className="registro-success">✅ {successMessage}</div>
+      )}
+
+      {errorMessage && (
+        <div className="registro-error">❌ {errorMessage}</div>
       )}
 
       <div className="card">
         <div className="card-body">
           <h4>Registro</h4>
+
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
-              <label htmlFor="nombre">Nombre Completo</label>
+              <label>Nombre</label>
               <input
                 type="text"
-                id="nombre"
-                className={`form-control ${errors.nombre ? "is-invalid" : nombre ? "is-valid" : ""}`}
-                placeholder="Ej: Juan Pérez"
+                className={`form-control ${
+                  errors.nombre ? "is-invalid" : ""
+                }`}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                required
               />
-              {errors.nombre && <div className="invalid-feedback">{errors.nombre}</div>}
+              {errors.nombre && (
+                <div className="invalid-feedback">{errors.nombre}</div>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="email">Correo Electrónico</label>
-              <input
-                type="email"
-                id="email"
-                className={`form-control ${errors.email ? "is-invalid" : email ? "is-valid" : ""}`}
-                placeholder="ejemplo@correo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              {errors.email && <div className="invalid-feedback">{errors.email}</div>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="rut">RUT</label>
+              <label>Apellido</label>
               <input
                 type="text"
-                id="rut"
-                className={`form-control ${errors.rut ? "is-invalid" : rut ? "is-valid" : ""}`}
+                className={`form-control ${
+                  errors.apellido ? "is-invalid" : ""
+                }`}
+                value={apellido}
+                onChange={(e) => setApellido(e.target.value)}
+              />
+              {errors.apellido && (
+                <div className="invalid-feedback">{errors.apellido}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Fecha de nacimiento</label>
+              <input
+                type="date"
+                className={`form-control ${
+                  errors.fechaNacimiento ? "is-invalid" : ""
+                }`}
+                value={fechaNacimiento}
+                onChange={(e) => setFechaNacimiento(e.target.value)}
+              />
+              {errors.fechaNacimiento && (
+                <div className="invalid-feedback">
+                  {errors.fechaNacimiento}
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Correo Electrónico</label>
+              <input
+                type="email"
+                className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {errors.email && (
+                <div className="invalid-feedback">{errors.email}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>RUT</label>
+              <input
+                type="text"
+                className={`form-control ${errors.rut ? "is-invalid" : ""}`}
                 placeholder="Ej: 12345678-9"
                 value={rut}
                 onChange={(e) => setRut(e.target.value)}
-                required
               />
-              {errors.rut && <div className="invalid-feedback">{errors.rut}</div>}
+              {errors.rut && (
+                <div className="invalid-feedback">{errors.rut}</div>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Contraseña</label>
+              <label>Teléfono</label>
+              <input
+                type="text"
+                className="form-control"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Dirección</label>
+              <input
+                type="text"
+                className="form-control"
+                value={direccion}
+                onChange={(e) => setDireccion(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Contraseña</label>
               <input
                 type="password"
-                id="password"
-                className={`form-control ${errors.password ? "is-invalid" : password ? "is-valid" : ""}`}
-                placeholder="Mínimo 8 caracteres"
+                className={`form-control ${
+                  errors.password ? "is-invalid" : ""
+                }`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
               />
-              {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+              {errors.password && (
+                <div className="invalid-feedback">{errors.password}</div>
+              )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+              <label>Confirmar Contraseña</label>
               <input
                 type="password"
-                id="confirmPassword"
-                className={`form-control ${errors.confirmPassword ? "is-invalid" : confirmPassword ? "is-valid" : ""}`}
-                placeholder="Repite la contraseña"
+                className={`form-control ${
+                  errors.confirmPassword ? "is-invalid" : ""
+                }`}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
               />
-              {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword}</div>}
+              {errors.confirmPassword && (
+                <div className="invalid-feedback">
+                  {errors.confirmPassword}
+                </div>
+              )}
             </div>
 
-            <button type="submit" className="btn-registro">Registrarse</button>
+            <button type="submit" className="btn-registro">
+              Registrarse
+            </button>
           </form>
         </div>
       </div>
@@ -159,4 +278,3 @@ const Registro = () => {
 };
 
 export default Registro;
-

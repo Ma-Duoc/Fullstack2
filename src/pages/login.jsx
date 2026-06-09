@@ -13,14 +13,12 @@ export default function Login() {
   const [errorPassword, setErrorPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-
   const normalizarRut = (r) => r.replace(/\./g, "").toUpperCase();
 
   const validarRut = (rutCompleto) => {
     rutCompleto = normalizarRut(rutCompleto);
     return /^[0-9]{7,8}-[0-9K]$/.test(rutCompleto);
   };
-
 
   const isStrongPassword = (value) =>
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
@@ -36,7 +34,6 @@ export default function Login() {
       setErrorRut("");
     }
 
-
     if (!isStrongPassword(password)) {
       setErrorPassword(
         "Contraseña inválida. Debe tener mínimo 8 caracteres, mayúscula, minúscula y número."
@@ -51,31 +48,58 @@ export default function Login() {
     setLoading(true);
 
     try {
+      const response = await fetch("http://localhost:8089/api/pacientes/usuarios/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rut: normalizarRut(rut.trim()),
+          password: password,
+        }),
+      });
 
-      const response = await fetch(
-        "https://demo0545743.mockable.io/api/v2/pacientes/todos"
-      );
-      const data = await response.json();
+      console.log("status:", response.status);
 
- 
-      const paciente = data.find(
-        (p) => normalizarRut(p.rut) === normalizarRut(rut.trim())
-      );
-
-      if (paciente) {
-        sessionStorage.setItem("rut", paciente.rut);
-        sessionStorage.setItem("nombre", paciente.nombre);
-        sessionStorage.setItem("email", paciente.correo);
-        sessionStorage.setItem("telefono", paciente.telefono);
-        sessionStorage.setItem("password", password);
-
-        navigate("/dashboard");
-      } else {
-        setErrorRut("RUT no encontrado en la base de datos.");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error en el login");
       }
+
+      const result = await response.json();
+      console.log("response:", result);
+
+      // Guardar token y datos del usuario
+      sessionStorage.setItem("token", result.token);
+      sessionStorage.setItem("rut", result.rut);
+      sessionStorage.setItem("nombre", result.nombre);
+
+      // Obtener datos completos del paciente
+      try {
+        const pacienteResponse = await fetch(`http://localhost:8089/api/pacientes/${result.rut}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${result.token}`
+          }
+        });
+
+        if (pacienteResponse.ok) {
+          const pacienteData = await pacienteResponse.json();
+          console.log("datos completos:", pacienteData);
+          
+          sessionStorage.setItem("apellido", pacienteData.apellido || "");
+          sessionStorage.setItem("email", pacienteData.email || "");
+          sessionStorage.setItem("telefono", pacienteData.telefono || "");
+        }
+      } catch (error) {
+        console.error("Error al obtener datos completos del paciente:", error);
+      }
+
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Error al conectar con Mockable:", error);
-      setErrorRut("Ocurrió un error al validar el RUT. Intente nuevamente.");
+      console.error("Error al conectar con el backend:", error);
+      setErrorRut("RUT o contraseña incorrectos.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +107,6 @@ export default function Login() {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-
       <header className="bg-white shadow-sm">
         <nav className="navbar navbar-expand-lg navbar-light container">
           <button
@@ -99,25 +122,16 @@ export default function Login() {
         </nav>
       </header>
 
-
       <section className="login-section d-flex justify-content-center align-items-center">
-        <div
-          className="card p-4 shadow-sm"
-          style={{ maxWidth: "400px", width: "100%" }}
-        >
+        <div className="card p-4 shadow-sm" style={{ maxWidth: "400px", width: "100%" }}>
           <h3 className="text-center mb-4">Iniciar Sesión</h3>
           <form onSubmit={handleSubmit}>
-
             <div className="mb-3">
-              <label htmlFor="rut" className="form-label">
-                Rut
-              </label>
+              <label htmlFor="rut" className="form-label">Rut</label>
               <input
                 type="text"
                 id="rut"
-                className={`form-control ${
-                  errorRut ? "is-invalid" : rut ? "is-valid" : ""
-                }`}
+                className={`form-control ${errorRut ? "is-invalid" : rut ? "is-valid" : ""}`}
                 placeholder="Ej: 12345678-9"
                 value={rut}
                 onChange={(e) => setRut(e.target.value)}
@@ -126,45 +140,33 @@ export default function Login() {
               {errorRut && <div className="invalid-feedback">{errorRut}</div>}
             </div>
 
-
             <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Contraseña
-              </label>
+              <label htmlFor="password" className="form-label">Contraseña</label>
               <input
                 type="password"
                 id="password"
-                className={`form-control ${
-                  errorPassword ? "is-invalid" : password ? "is-valid" : ""
-                }`}
+                className={`form-control ${errorPassword ? "is-invalid" : password ? "is-valid" : ""}`}
                 placeholder="Ingrese su contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              {errorPassword && (
-                <div className="invalid-feedback">{errorPassword}</div>
-              )}
+              {errorPassword && <div className="invalid-feedback">{errorPassword}</div>}
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary w-100"
-              disabled={loading}
-            >
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
               {loading ? "Validando..." : "Ingresar"}
             </button>
 
             <div className="mt-2 text-center">
-            <button
-              type="button"
-              className="btn btn-link text-decoration-none text-primary"
-              onClick={() => navigate("/recuperar")}
-            >
-              ¿Has olvidado la contraseña?
-            </button>
-          </div>
-
+              <button
+                type="button"
+                className="btn btn-link text-decoration-none text-primary"
+                onClick={() => navigate("/recuperar")}
+              >
+                ¿Has olvidado la contraseña?
+              </button>
+            </div>
 
             <div className="mt-3 text-center">
               <button
@@ -179,13 +181,9 @@ export default function Login() {
         </div>
       </section>
 
-
       <footer className="bg-dark text-white text-center py-3 mt-auto">
-        <p className="mb-0">
-          &copy; 2025 MEDICTIME | Mejorando la salud de Chile desde 1972
-        </p>
+        <p className="mb-0">&copy; 2025 MEDICTIME | Mejorando la salud de Chile desde 1972</p>
       </footer>
     </div>
   );
 }
-

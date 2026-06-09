@@ -110,7 +110,7 @@ export default function Inicio() {
       </section>
 
       <footer className="bg-dark text-white text-center py-4 w-100">
-        <p className="mb-2">&copy; 2025 MEDICTIME | Mejorando la salud de Chile desde 1972</p>
+        <p className="mb-2">&copy; 2026 MEDICTIME | Mejorando la salud de Chile desde 1972</p>
         <small>📧 contacto@medictime.cl | ☎ +56 2 2345 6789</small>
       </footer>
 

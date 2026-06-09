@@ -9,14 +9,17 @@ export default function Dashboard() {
   const location = useLocation();
 
   const [editando, setEditando] = useState(false);
-  const [perfil, setPerfil] = useState({ nombre: "", email: "", telefono: "", rut: "" });
+  const [perfil, setPerfil] = useState({ nombre: "", apellido: "", email: "", telefono: "", rut: "" });
 
   useEffect(() => {
+    const nombre = sessionStorage.getItem("nombre") || "";
+    const apellido = sessionStorage.getItem("apellido") || "";
     setPerfil({
-      nombre: sessionStorage.getItem("nombre") || "Cristian Pizarro Bahamondes",
-      email: sessionStorage.getItem("email") || "cristianbahamondes66@gmail.com",
-      telefono: sessionStorage.getItem("telefono") || "+56 9 1234 5678",
-      rut: sessionStorage.getItem("rut") || "12.345.678-9",
+      nombre: nombre,
+      apellido: apellido,
+      email: sessionStorage.getItem("email") || "",
+      telefono: sessionStorage.getItem("telefono") || "",
+      rut: sessionStorage.getItem("rut") || "",
     });
   }, []);
 
@@ -68,7 +71,7 @@ export default function Dashboard() {
                 <div className="d-flex justify-content-between align-items-start mb-3">
                   <div>
                     <h4 className="fw-bold">Perfil MedicTime</h4>
-                    <p className="mb-1">{perfil.nombre}</p>
+                    <p className="mb-1">{perfil.nombre} {perfil.apellido}</p>
                   </div>
                   <button className="btn btn-light btn-sm"><i className="bi bi-camera"></i> Subir foto</button>
                 </div>
@@ -84,7 +87,7 @@ export default function Dashboard() {
                   </>
                 ) : (
                   <form onSubmit={guardarCambios}>
-                    {["nombre","email","telefono"].map(field => (
+                    {["nombre","apellido","email","telefono"].map(field => (
                       <div className="mb-3" key={field}>
                         <label className="form-label fw-bold text-white">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
                         <input

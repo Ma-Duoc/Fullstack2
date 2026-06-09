@@ -5,7 +5,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
 import Inicio from "./pages/inicio";
 import Login from "./pages/login";
-import Registro from "./pages/Registro";
+import Registro from "./pages/registro";
 import Recuperar from "./pages/recuperar";
 import Preguntas from "./pages/preguntas";
 

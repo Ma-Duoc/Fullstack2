@@ -1,26 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
-const historial = [
-  { fecha: "2025-08-15", especialista: "Dra. Fernanda Muñoz (Cardióloga)", diagnostico: "Chequeo general, sin hallazgos graves.", tipo: "Informes" },
-  { fecha: "2025-07-30", especialista: "Dr. Luis Pérez (Dermatólogo)", diagnostico: "Receta para tratamiento de piel.", tipo: "Recetas" },
-  { fecha: "2025-06-20", especialista: "Dra. Carolina Soto (Laboratorio)", diagnostico: "Examen de sangre: todo normal.", tipo: "Exámenes" },
-];
-
-export default function HistorialMedico() {
+export default function Examenes() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [filtroFecha, setFiltroFecha] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [examenes, setExamenes] = useState([]);
+
+  useEffect(() => {
+    const rut = sessionStorage.getItem("rut");
+    if (rut) {
+      fetch(`http://localhost:8089/api/historial/paciente/${rut}`)
+        .then(res => res.json())
+        .then(data => {
+          const examenesMapeados = data.map(item => ({
+            nombre: item.examen || "Sin nombre",
+            estado: "Disponible",
+            fecha: item.fechaCreacion ? item.fechaCreacion.split('T')[0] : ""
+          }));
+          setExamenes(examenesMapeados);
+        })
+        .catch(err => console.error("Error al cargar exámenes:", err));
+    }
+  }, []);
 
   const normalize = (str) => str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/s$/, "");
 
-  const historialFiltrado = historial.filter(item =>
-    (!filtroFecha || item.fecha === filtroFecha) &&
-    (!filtroTipo || normalize(item.tipo) === normalize(filtroTipo))
+  const examenesFiltrados = examenes.filter(item =>
+    !filtroEstado || normalize(item.estado) === normalize(filtroEstado)
   );
 
   const navItems = [
@@ -62,24 +72,18 @@ export default function HistorialMedico() {
           <main className="col-md-9 col-lg-10 p-4">
             <div className="card shadow-lg border-0">
               <div className="card-body bg-primary text-white rounded">
-                <h4 className="fw-bold mb-3">Historial Médico</h4>
+                <h4 className="fw-bold mb-3">Exámenes</h4>
 
                 <div className="row mb-3">
-                  <div className="col-md-4">
-                    <label className="form-label fw-bold">Filtrar por fecha</label>
-                    <input type="date" className="form-control" value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)} />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="form-label fw-bold">Filtrar por tipo</label>
-                    <select className="form-select" value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)}>
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">Filtrar por estado</label>
+                    <select className="form-select" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
                       <option value="">Todos</option>
-                      <option value="informes">Informes</option>
-                      <option value="recetas">Recetas</option>
-                      <option value="examenes">Exámenes</option>
+                      <option value="pendiente">Pendiente</option>
+                      <option value="completado">Completado</option>
+                      <option value="disponible">Disponible</option>
+                      <option value="en revision">En revisión</option>
                     </select>
-                  </div>
-                  <div className="col-md-4 d-flex align-items-end">
-                    <button className="btn btn-light fw-bold w-100"><i className="bi bi-funnel"></i> Aplicar filtro</button>
                   </div>
                 </div>
 
@@ -87,26 +91,34 @@ export default function HistorialMedico() {
                   <table className="table table-striped table-hover bg-white text-dark rounded shadow-sm">
                     <thead className="table-primary">
                       <tr>
-                        {["Fecha", "Especialista", "Diagnóstico", "Documento", "Acciones"].map(h => <th key={h}>{h}</th>)}
+                        {["Examen", "Estado", "Fecha", "Acciones"].map(h => <th key={h}>{h}</th>)}
                       </tr>
                     </thead>
                     <tbody>
-                      {historialFiltrado.length ? (
-                        historialFiltrado.map((item, i) => (
+                      {examenesFiltrados.length ? (
+                        examenesFiltrados.map((item, i) => (
                           <tr key={i}>
-                            <td>{item.fecha}</td>
-                            <td>{item.especialista}</td>
-                            <td>{item.diagnostico}</td>
-                            <td>{item.tipo}</td>
+                            <td>{item.nombre}</td>
                             <td>
-                              <button className="btn btn-sm btn-outline-primary" onClick={() => alert("📄 Descargando documento...")}>
-                                <i className="bi bi-file-earmark-arrow-down"></i> Descargar PDF
+                              <span className={`badge ${
+                                item.estado === "Completado" ? "bg-success" :
+                                item.estado === "Pendiente" ? "bg-warning" :
+                                item.estado === "Disponible" ? "bg-info" :
+                                "bg-secondary"
+                              }`}>
+                                {item.estado}
+                              </span>
+                            </td>
+                            <td>{item.fecha}</td>
+                            <td>
+                              <button className="btn btn-sm btn-outline-primary" onClick={() => alert("📄 Descargando resultado...")}>
+                                <i className="bi bi-file-earmark-arrow-down"></i> Descargar
                               </button>
                             </td>
                           </tr>
                         ))
                       ) : (
-                        <tr><td colSpan="5" className="text-center py-3">No se encontraron resultados.</td></tr>
+                        <tr><td colSpan="4" className="text-center py-3">No se encontraron resultados.</td></tr>
                       )}
                     </tbody>
                   </table>
