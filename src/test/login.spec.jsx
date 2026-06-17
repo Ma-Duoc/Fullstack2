@@ -13,12 +13,14 @@ vi.mock("react-router-dom", async () => {
 });
 
 describe("Login - pruebas unitarias básicas", () => {
+
   it("renderiza los campos principales", () => {
     render(
       <MemoryRouter>
         <Login />
       </MemoryRouter>
     );
+
     expect(screen.getByLabelText(/Rut/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
   });
@@ -29,7 +31,10 @@ describe("Login - pruebas unitarias básicas", () => {
         <Login />
       </MemoryRouter>
     );
-    expect(screen.getByRole("button", { name: /Ingresar/i })).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", { name: /Ingresar/i })
+    ).toBeInTheDocument();
   });
 
   it("muestra error si RUT inválido y se envía formulario", () => {
@@ -38,10 +43,22 @@ describe("Login - pruebas unitarias básicas", () => {
         <Login />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/Rut/i), { target: { value: "123" } });
-    fireEvent.change(screen.getByLabelText(/Contraseña/i), { target: { value: "Aa123456" } });
-    fireEvent.click(screen.getByRole("button", { name: /Ingresar/i }));
-    expect(screen.getByText(/Ingrese un RUT válido/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Rut/i), {
+      target: { value: "123" },
+    });
+
+    fireEvent.change(screen.getByLabelText(/Contraseña/i), {
+      target: { value: "Aa123456" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Ingresar/i })
+    );
+
+    expect(
+      screen.getByText(/Ingrese un RUT válido/i)
+    ).toBeInTheDocument();
   });
 
   it("muestra error si contraseña débil", () => {
@@ -50,10 +67,66 @@ describe("Login - pruebas unitarias básicas", () => {
         <Login />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/Rut/i), { target: { value: "12345678-9" } });
-    fireEvent.change(screen.getByLabelText(/Contraseña/i), { target: { value: "123" } });
-    fireEvent.click(screen.getByRole("button", { name: /Ingresar/i }));
-    expect(screen.getByText(/Contraseña inválida/i)).toBeInTheDocument();
-  });
-});
 
+    fireEvent.change(screen.getByLabelText(/Rut/i), {
+      target: { value: "12345678-9" },
+    });
+
+    fireEvent.change(screen.getByLabelText(/Contraseña/i), {
+      target: { value: "123" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Ingresar/i })
+    );
+
+    expect(
+      screen.getByText(/Contraseña inválida/i)
+    ).toBeInTheDocument();
+  });
+
+  it("navega a registro al hacer click", () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /¿No tienes cuenta\? Regístrate/i,
+      })
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith("/registro");
+  });
+
+  it("navega a recuperar contraseña", () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /¿Has olvidado la contraseña/i,
+      })
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith("/recuperar");
+  });
+
+  it("navega a inicio al hacer click en el logo", () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getAllByRole("button")[0]);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/inicio");
+  });
+
+});

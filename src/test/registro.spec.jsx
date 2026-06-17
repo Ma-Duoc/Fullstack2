@@ -7,52 +7,165 @@ const mockNavigate = vi.fn();
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
+
   return {
     ...actual,
     useNavigate: () => mockNavigate,
   };
 });
 
-describe("Registro - pruebas unitarias básicas", () => {
+describe("Registro - pruebas unitarias", () => {
   beforeEach(() => {
-    sessionStorage.clear();
-    mockNavigate.mockClear();
+    vi.clearAllMocks();
+
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve("Registro exitoso"),
+      })
+    );
   });
 
-  test("guarda en sessionStorage y muestra mensaje de éxito al registrarse correctamente", async () => {
+  it("renderiza el formulario de registro", () => {
     render(
       <MemoryRouter>
         <Registro />
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByLabelText("Nombre Completo"), {
-      target: { value: "Juan Pérez" },
+    expect(
+      screen.getByRole("button", { name: /Registrarse/i })
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(/Registro/i)).toBeInTheDocument();
+  });
+
+  it("muestra error cuando el RUT es inválido", () => {
+    render(
+      <MemoryRouter>
+        <Registro />
+      </MemoryRouter>
+    );
+
+    const textInputs = screen.getAllByRole("textbox");
+
+    fireEvent.change(textInputs[0], {
+      target: { value: "Marco" },
     });
-    fireEvent.change(screen.getByLabelText("Correo Electrónico"), {
-      target: { value: "juan@test.com" },
+
+    fireEvent.change(textInputs[1], {
+      target: { value: "Perez" },
     });
-    fireEvent.change(screen.getByLabelText("RUT"), {
-      target: { value: "12345678-5" }, // ✅ válido
+
+    fireEvent.change(textInputs[2], {
+      target: { value: "marco@test.com" },
     });
-    fireEvent.change(screen.getByLabelText("Contraseña"), {
-      target: { value: "Password123" },
-    });
-    fireEvent.change(screen.getByLabelText("Confirmar Contraseña"), {
+
+    fireEvent.change(
+      screen.getByPlaceholderText(/12345678-9/i),
+      {
+        target: { value: "123" },
+      }
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Registrarse/i,
+      })
+    );
+
+    expect(
+      screen.getByText(/Ingrese un RUT válido/i)
+    ).toBeInTheDocument();
+  });
+
+  it("muestra error cuando las contraseñas no coinciden", () => {
+    render(
+      <MemoryRouter>
+        <Registro />
+      </MemoryRouter>
+    );
+
+    const passwords = document.querySelectorAll(
+      'input[type="password"]'
+    );
+
+    fireEvent.change(passwords[0], {
       target: { value: "Password123" },
     });
 
-    fireEvent.submit(screen.getByRole("button", { name: "Registrarse" }));
+    fireEvent.change(passwords[1], {
+      target: { value: "Password456" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Registrarse/i,
+      })
+    );
+
+    expect(
+      screen.getByText(/Las contraseñas no coinciden/i)
+    ).toBeInTheDocument();
+  });
+
+  it("muestra mensaje de éxito cuando el registro es correcto", async () => {
+    render(
+      <MemoryRouter>
+        <Registro />
+      </MemoryRouter>
+    );
+
+    const textInputs = screen.getAllByRole("textbox");
+
+    fireEvent.change(textInputs[0], {
+      target: { value: "Marco" },
+    });
+
+    fireEvent.change(textInputs[1], {
+      target: { value: "Perez" },
+    });
+
+    fireEvent.change(textInputs[2], {
+      target: { value: "marco@test.com" },
+    });
+
+    fireEvent.change(
+      document.querySelector('input[type="date"]'),
+      {
+        target: { value: "1990-01-01" },
+      }
+    );
+
+    fireEvent.change(
+      screen.getByPlaceholderText(/12345678-9/i),
+      {
+        target: { value: "12345678-5" },
+      }
+    );
+
+    const passwords = document.querySelectorAll(
+      'input[type="password"]'
+    );
+
+    fireEvent.change(passwords[0], {
+      target: { value: "Password123" },
+    });
+
+    fireEvent.change(passwords[1], {
+      target: { value: "Password123" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Registrarse/i,
+      })
+    );
 
     await waitFor(() => {
-      expect(screen.getByText(/registro exitoso/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Registro exitoso/i)
+      ).toBeInTheDocument();
     });
-
-    expect(mockNavigate).toHaveBeenCalledWith("/inicio");
-    expect(sessionStorage.getItem("usuario")).toContain("Juan Pérez");
   });
 });
-
-
-
-
